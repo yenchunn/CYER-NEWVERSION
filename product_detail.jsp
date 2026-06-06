@@ -628,6 +628,39 @@ footer {
 
   <section class="reviews">
     <h2 class="section-title">留言板 / 評論區</h2>
+    <!-- 新增評論表單區塊 -->
+  <div class="form-card" style="margin: 24px auto 48px; max-width: 100%;">
+    <h3 style="font-family: 'Playfair Display', serif; font-size: 1.2rem; letter-spacing: 0.05em; margin-bottom: 16px; color: var(--charcoal);">發表您的產品評論</h3>
+    
+    <form action="add_review_process.jsp" method="post">
+      <input type="hidden" name="p_id" value="<%= pId %>">
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <!-- 標題成功修改為：會員姓名(可匿名) -->
+          <label style="font-size: 0.85rem; color: var(--mid-grey);">會員姓名(可匿名)</label>
+          <input type="text" name="m_name" placeholder="例如：王小明 或 匿名" required style="margin-top: 4px;">
+        </div>
+        <div>
+          <label style="font-size: 0.85rem; color: var(--mid-grey);">產品評分</label>
+          <select name="r_stars" style="margin-top: 4px;">
+            <option value="5">★★★★★ (5分)</option>
+            <option value="4">★★★★☆ (4分)</option>
+            <option value="3">★★★☆☆ (3分)</option>
+            <option value="2">★★☆☆☆ (2分)</option>
+            <option value="1">★☆☆☆☆ (1分)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div style="margin-top: 12px;">
+        <label style="font-size: 0.85rem; color: var(--mid-grey);">評論內容</label>
+        <textarea name="r_content" rows="4" placeholder="分享您使用此質感家電的心得..." required style="margin-top: 4px; resize: none;"></textarea>
+      </div>
+      
+      <button type="submit" class="btn" style="width: 100%; margin-top: 16px; font-family: inherit; letter-spacing: 0.1em;">送出評論</button>
+    </form>
+  </div>
 <%
                 String reviewSql = "SELECT members.m_name, reviews.r_stars, reviews.r_content, reviews.r_date " +
                                    "FROM reviews JOIN members ON reviews.m_id = members.m_id " +
