@@ -577,16 +577,28 @@ footer {
     }
 %>
 <header class="site-header">
-  <div class="header-top">
-    <a href="index.jsp" class="brand-logo" style="text-decoration: none;">
+  <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; padding: 18px 60px;">
+    
+    <a href="index.jsp" class="brand-logo" style="text-decoration: none; width: 250px;">
       <span class="logo-text">CYER</span>
       <span class="logo-sub">Electric House</span>
     </a>
-    <div class="header-icons">
+    
+    <form action="search.jsp" method="get" style="display: flex; flex: 1; max-width: 420px; height: 38px; border: 1px solid var(--border); border-radius: 19px; overflow: hidden; background: white; margin: 0 20px;">
+      <input type="text" name="keyword" placeholder="搜尋質感家電..." required 
+             style="flex: 1; border: 0; padding: 0 18px; font-family: 'Noto Serif TC', serif; font-size: 0.85rem; color: var(--charcoal); outline: none;">
+      <button type="submit" 
+              style="width: 80px; border: 0; background: #4E4A46; color: var(--warm-white); font-family: 'Noto Serif TC', serif; font-size: 0.85rem; letter-spacing: 0.05em; cursor: pointer; transition: background 0.3s ease;">
+        搜尋
+      </button>
+    </form>
+    
+    <div class="header-icons" style="display: flex; gap: 18px; align-items: center; justify-content: flex-end; width: 250px;">
       <a href="member.jsp" class="icon-btn" title="會員中心">會員</a>
       <a href="shopping_cart.jsp" class="icon-btn cart-btn" title="購物車">購物車<span class="cart-badge">0</span></a>
     </div>
   </div>
+  
   <nav class="main-nav">
     <ul class="nav-list">
       <li class="nav-item <%= "index".equals(currentPage) ? "active" : "" %>"><a href="index.jsp">首頁</a><span class="nav-underline"></span></li>

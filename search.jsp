@@ -1,0 +1,375 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.sql.*" %>
+<%!
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/cyer?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Taipei";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "1234";
+
+    public Connection getConnection() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    }
+
+    public String h(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\"", "&quot;")
+                    .replace("'", "&#39;");
+    }
+%>
+<%
+    request.setCharacterEncoding("UTF-8");
+    response.setCharacterEncoding("UTF-8");
+    pageContext.setAttribute("currentPage", ""); // 搜尋結果頁不特別高亮特定分類
+    
+    String keyword = request.getParameter("keyword");
+    if (keyword == null) {
+        keyword = "";
+    }
+    keyword = keyword.trim();
+%>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYER | 搜尋結果 : <%= h(keyword) %></title>
+  <style>
+/* ===== 完美移植自 refrigerator.jsp 的精品樣式 (French Maison Style) ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+TC:wght@300;400;600&display=swap');
+
+:root {
+  --cream:      #F9F5EF;
+  --warm-white: #FDFAF5;
+  --gold:       #B8945A;
+  --gold-light: #D4AF7A;
+  --gold-dark:  #8B6835;
+  --charcoal:   #2C2825;
+  --mid-grey:   #8A8278;
+  --light-grey: #E8E2D9;
+  --border:     #D6CCBC;
+  --accent:     #6B4F3A;
+  --shadow:     rgba(44,40,37,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--charcoal);
+  font-family: 'Noto Serif TC', 'Cormorant Garamond', serif;
+  font-weight: 300;
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.site-header {
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px var(--shadow);
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 60px;
+  border-bottom: 1px solid var(--light-grey);
+}
+.brand-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: var(--charcoal);
+  line-height: 1;
+}
+.logo-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  margin-top: 2px;
+}
+.header-icons {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.icon-btn {
+  color: var(--charcoal);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.icon-btn:hover { color: var(--gold); }
+.cart-badge {
+  position: absolute;
+  top: -6px; right: -8px;
+  background: var(--gold);
+  color: white;
+  font-size: 0.6rem;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== NAVBAR ===== */
+.main-nav { background: var(--warm-white); }
+.nav-list { display: flex; list-style: none; justify-content: center; padding: 0 40px; }
+.nav-item { position: relative; transition: transform 0.2s ease; }
+.nav-item:hover { transform: translateY(-2px); }
+.nav-item a {
+  display: block;
+  padding: 14px 22px;
+  text-decoration: none;
+  color: var(--charcoal);
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  font-weight: 400;
+}
+.nav-item:hover a { color: var(--gold); }
+.nav-underline {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 2px;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+.nav-item:hover .nav-underline { width: 60%; }
+
+/* ===== HERO & GRID ===== */
+.page-hero {
+  background: linear-gradient(135deg, #2C2825 0%, #3E3530 50%, #2C2825 100%);
+  padding: 72px 60px 60px;
+  text-align: center;
+}
+.page-hero-fr {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  color: var(--gold-light);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.page-hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 400;
+  color: var(--warm-white);
+  margin-bottom: 12px;
+}
+.page-hero-sub { color: rgba(249,245,239,0.72); letter-spacing: 0.08em; }
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--charcoal);
+  text-align: center;
+  margin-bottom: 40px;
+}
+.container { max-width: 1300px; margin: 0 auto; padding: 0 60px; }
+.page-section { padding: 64px 0; }
+
+.cyer-product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.cyer-product-card { background: var(--warm-white); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 8px 28px var(--shadow); }
+.cyer-product-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: white; display: block; padding: 18px; }
+.cyer-product-body { padding: 22px; }
+.cyer-product-body h3 { font-size: 1.05rem; margin-bottom: 8px; }
+.price { color: var(--gold-dark); font-weight: 600; margin-bottom: 8px; }
+
+.btn-link, .btn {
+  display: inline-block;
+  background: var(--gold);
+  color: white;
+  border: 0;
+  padding: 10px 22px;
+  margin-top: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.btn-link:hover, .btn:hover { background: var(--gold-dark); }
+.empty-message { grid-column: 1 / -1; background: white; border: 1px solid var(--border); padding: 4px; text-align: center; }
+
+/* ===== FOOTER ===== */
+footer { background: var(--charcoal); color: var(--light-grey); padding: 60px; }
+.footer-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 48px; max-width: 1300px; margin: 0 auto 40px; }
+.footer-brand p { font-size: 0.8rem; color: var(--mid-grey); margin-top: 16px; }
+.footer-col h4 { font-family: 'Cormorant Garamond', serif; font-size: 0.75rem; letter-spacing: 0.25em; color: var(--gold-light); margin-bottom: 16px; text-transform: uppercase; }
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 10px; }
+.footer-col ul li a { color: var(--mid-grey); text-decoration: none; font-size: 0.82rem; transition: color 0.3s; }
+.footer-col ul li a:hover { color: var(--gold-light); }
+.footer-bottom { border-top: 1px solid #3C3835; padding-top: 28px; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: 0 auto; }
+.footer-bottom p { font-size: 0.75rem; color: var(--mid-grey); letter-spacing: 0.08em; }
+
+@media (max-width: 900px) {
+  .header-top, .container { padding-left: 24px; padding-right: 24px; }
+  .nav-list { flex-wrap: wrap; padding: 0 12px; }
+  .cyer-product-grid, .footer-grid { grid-template-columns: 1fr; }
+}
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-top" style="display: flex; align-items: center; justify-content: space-between; padding: 18px 60px;">
+    
+    <a href="index.jsp" class="brand-logo" style="text-decoration: none; width: 250px;">
+      <span class="logo-text">CYER</span>
+      <span class="logo-sub">Electric House</span>
+    </a>
+    
+    <form action="search.jsp" method="get" style="display: flex; flex: 1; max-width: 420px; height: 38px; border: 1px solid var(--border); border-radius: 19px; overflow: hidden; background: white; margin: 0 20px;">
+      <input type="text" name="keyword" value="<%= h(keyword) %>" placeholder="搜尋質感家電..." required 
+             style="flex: 1; border: 0; padding: 0 18px; font-family: 'Noto Serif TC', serif; font-size: 0.85rem; color: var(--charcoal); outline: none;">
+      <button type="submit" 
+              style="width: 80px; border: 0; background: #4E4A46; color: var(--warm-white); font-family: 'Noto Serif TC', serif; font-size: 0.85rem; letter-spacing: 0.05em; cursor: pointer;">
+        搜尋
+      </button>
+    </form>
+    
+    <div class="header-icons" style="display: flex; gap: 18px; align-items: center; justify-content: flex-end; width: 250px;">
+      <a href="member.jsp" class="icon-btn" style="text-decoration: none;">會員</a>
+      <a href="shopping_cart.jsp" class="icon-btn" style="text-decoration: none;">購物車<span class="cart-badge" style="position:relative; top:-2px; margin-left:4px; background:var(--gold); color:white; padding:1px 6px; border-radius:10px; font-size:0.7rem;">0</span></a>
+    </div>
+  </div>
+  
+  <nav class="main-nav">
+    <ul class="nav-list">
+      <li class="nav-item"><a href="index.jsp">首頁</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="refrigerator.jsp">冰箱</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="air-purifier.jsp">空氣清淨機</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="fan.jsp">電風扇</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="hairdryer.jsp">吹風機</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="dehumidifier.jsp">除濕機</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="vacuum.jsp">吸塵器</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="support.jsp">客服支援</a><span class="nav-underline"></span></li>
+      <li class="nav-item"><a href="login.jsp">登入</a><span class="nav-underline"></span></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="page-hero">
+  <p class="page-hero-fr">SEARCH RESULTS</p>
+  <h1 class="page-hero-title">關鍵字「<%= h(keyword) %>」</h1>
+  <p class="page-hero-sub">為您尋得極致洗鍊的居家美學選品</p>
+</section>
+
+<main class="container page-section">
+  <h2 class="section-title">搜尋結果清單</h2>
+  <div class="cyer-product-grid">
+    <%
+    // 修正點：移除 OR p_desc LIKE ?，讓搜尋只針對「品名」或「分類」
+    String productSql = "SELECT p_id, p_name, p_price, p_desc, p_image FROM products WHERE p_name LIKE ? OR p_category LIKE ? ORDER BY p_id LIMIT 12";
+    try (Connection conn = getConnection();
+         PreparedStatement ps = conn.prepareStatement(productSql)) {
+        
+        String queryParam = "%" + keyword + "%";
+        ps.setString(1, queryParam); // 對應 p_name
+        ps.setString(2, queryParam); // 對應 p_category
+        
+        try (ResultSet rs = ps.executeQuery()) {
+            boolean hasProduct = false;
+            while (rs.next()) {
+                hasProduct = true;
+                String desc = rs.getString("p_desc");
+                if (desc != null && desc.length() > 46) {
+                    desc = desc.substring(0, 46) + "...";
+                }
+%>
+    <article class="cyer-product-card">
+      <img src="<%= h(rs.getString("p_image")) %>" alt="<%= h(rs.getString("p_name")) %>">
+      <div class="cyer-product-body">
+        <h3><%= h(rs.getString("p_name")) %></h3>
+        <p class="price">NT$ <%= rs.getInt("p_price") %></p>
+        <p><%= h(desc) %></p>
+        <a class="btn-link" href="product_detail.jsp?p_id=<%= rs.getInt("p_id") %>">查看詳情</a>
+      </div>
+    </article>
+<%
+            }
+            if (!hasProduct) {
+%>
+    <div class="empty-message" style="grid-column: 1 / -1; padding: 48px; background: white;">
+       <p style="color: var(--mid-grey); font-size: 1.1rem;">很抱歉，找不到符合「<%= h(keyword) %>」的質感家電。</p>
+       <a href="index.jsp" class="btn" style="margin-top: 20px;">返回首頁</a>
+    </div>
+<%
+            }
+        }
+    } catch (Exception e) {
+%>
+    <div class="empty-message" style="grid-column: 1 / -1; padding: 48px; background: white;">
+       <p style="color: #c94c4c;">資料庫讀取失敗：<%= h(e.getMessage()) %></p>
+    </div>
+<%
+    }
+%>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="brand-logo">
+        <span class="logo-text">CYER</span>
+        <span class="logo-sub">Electric House</span>
+      </div>
+      <p>CYER 提供質感家電選品，讓日常空間更舒適、更安靜，也更容易照顧。</p>
+    </div>
+    <div class="footer-col">
+      <h4>商品分類</h4>
+      <ul>
+        <li><a href="refrigerator.jsp">冰箱</a></li>
+        <li><a href="air-purifier.jsp">空氣清淨機</a></li>
+        <li><a href="fan.jsp">電風扇</a></li>
+        <li><a href="hairdryer.jsp">吹風機</a></li>
+        <li><a href="dehumidifier.jsp">除濕機</a></li>
+        <li><a href="vacuum.jsp">吸塵器</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>客服支援</h4>
+      <ul>
+        <li><a href="support.jsp?tab=order">訂單查詢</a></li>
+        <li><a href="support.jsp?tab=shipping">配送說明</a></li>
+        <li><a href="support.jsp?tab=returns">退換貨政策</a></li>
+        <li><a href="support.jsp?tab=warranty">保固服務</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>會員服務</h4>
+      <ul>
+        <li><a href="login.jsp">會員登入</a></li>
+        <li><a href="register.jsp">會員註冊</a></li>
+        <li><a href="member.jsp">會員中心</a></li>
+        <li><a href="shopping_cart.jsp">購物車</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 CYER Electric House. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
