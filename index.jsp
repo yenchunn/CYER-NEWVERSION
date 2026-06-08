@@ -25,15 +25,24 @@
     request.setCharacterEncoding("UTF-8");
     response.setCharacterEncoding("UTF-8");
     pageContext.setAttribute("currentPage", "index");
+    
+    // 從系統全域環境嘗試抓取計數器數字
     Integer visitorCount = (Integer) application.getAttribute("visitor_count");
+    
+    // 【關鍵修正點】如果伺服器剛開機（完全沒人進來過），預設基礎人氣直接拉到 1200！
     if (visitorCount == null) {
-        visitorCount = 0;
+        visitorCount = 1200; 
+        application.setAttribute("visitor_count", visitorCount); // 順便把它同步寫回 application 鎖定
     }
+    
+    // 檢查這個視窗這輩子（Session）是不是第一次來到首頁
     if (session.getAttribute("has_visited_index") == null) {
         synchronized (application) {
+            // 是的話，再從 1200 開始往上加 1（所以第一個點進來的人會看到 1201）
             visitorCount++;
             application.setAttribute("visitor_count", visitorCount);
         }
+        // 標記該視窗：你已經參訪過了，之後重新整理（F5）都不會再幫你加數字
         session.setAttribute("has_visited_index", true);
     }
 %>
