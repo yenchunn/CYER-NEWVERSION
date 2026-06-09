@@ -27,15 +27,21 @@ CREATE TABLE IF NOT EXISTS `members` (
   UNIQUE INDEX `m_email_UNIQUE` (`m_email` ASC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `cart` (
-  `cart_id` int NOT NULL AUTO_INCREMENT,
-  `member_id` int NOT NULL,
-  `p_id` int NOT NULL,
-  `quantity` int NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`cart_id`),
-  UNIQUE KEY `uk_member_product` (`member_id`,`p_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS cart (
+  cart_id INT AUTO_INCREMENT PRIMARY KEY,
+  member_id INT NOT NULL,
+  p_id INT NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uk_member_product (member_id, p_id),
+
+  FOREIGN KEY (member_id) REFERENCES members(m_id),
+  FOREIGN KEY (p_id) REFERENCES products(p_id),
+
+  INDEX idx_member (member_id),
+  INDEX idx_product (p_id)
+);
 
 CREATE TABLE IF NOT EXISTS `orders` (
   `o_id` INT(11) NOT NULL AUTO_INCREMENT,
