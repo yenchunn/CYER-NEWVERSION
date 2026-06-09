@@ -589,7 +589,7 @@ footer {
   </main>
 <% } else { %>
   <main class="form-card">
-    <form action="order_success.jsp" method="post">
+    <form action="order_process.jsp" method="post">
       <label for="name">收件人姓名</label>
       <input id="name" name="name" value="<%= session.getAttribute("m_name") == null ? "" : session.getAttribute("m_name") %>" required>
       <label for="phone">電話</label>

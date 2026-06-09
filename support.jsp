@@ -1,3 +1,7 @@
+<%
+request.setCharacterEncoding("UTF-8");
+response.setCharacterEncoding("UTF-8");
+%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%
     request.setCharacterEncoding("UTF-8");
@@ -598,8 +602,63 @@ footer {
   </aside>
   <section class="member-panel">
     <% if ("order".equals(tab)) { %>
-      <h2>訂單查詢</h2>
-      <p>登入會員中心後即可查看近期訂單狀態與收件資訊。</p>
+
+      <h2>我的訂單</h2>
+      
+      <%@ page import="java.sql.*" %>
+
+      <%
+      request.setCharacterEncoding("UTF-8");
+      response.setCharacterEncoding("UTF-8");
+      
+      Connection conn = null;
+      PreparedStatement ps = null;
+      ResultSet rs = null;
+      
+      try {
+      
+          Integer memberId = (Integer) session.getAttribute("m_id");
+      
+          if (memberId == null) {
+              response.sendRedirect("login.jsp");
+              return;
+          }
+      
+          Class.forName("com.mysql.cj.jdbc.Driver");
+      
+          conn = DriverManager.getConnection(
+              "jdbc:mysql://localhost:3306/cyer?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Taipei&useSSL=false",
+              "root",
+              "1234"
+          );
+      
+          ps = conn.prepareStatement(
+              "SELECT * FROM orders WHERE m_id = ? ORDER BY o_id DESC"
+          );
+      
+          ps.setInt(1, memberId);
+          rs = ps.executeQuery();
+      
+          while (rs.next()) {
+      %>
+      
+      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+          訂單編號：<%= rs.getInt("o_id") %><br>
+          金額：<%= rs.getInt("o_total_price") %><br>
+          狀態：<%= rs.getString("o_status") %>
+      </div>
+      
+      <%
+          }
+      
+      } catch(Exception e) {
+          out.println("錯誤：" + e.getMessage());
+      } finally {
+          try { if (rs != null) rs.close(); } catch(Exception e) {}
+          try { if (ps != null) ps.close(); } catch(Exception e) {}
+          try { if (conn != null) conn.close(); } catch(Exception e) {}
+      }
+      %>
     <% } else if ("shipping".equals(tab)) { %>
       <h2>配送說明</h2>
       <p>一般商品於付款完成後 3 至 5 個工作天安排出貨，大型家電將另行電話確認配送時間。</p>

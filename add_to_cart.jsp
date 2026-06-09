@@ -5,7 +5,7 @@
 request.setCharacterEncoding("UTF-8");
 
 Integer memberId = (Integer) session.getAttribute("m_id");
-out.println("DEBUG memberId = " + memberId);
+
 
 if (memberId == null) {
     response.sendRedirect("login.jsp");

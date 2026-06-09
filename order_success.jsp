@@ -578,7 +578,8 @@ footer {
 </header>
 <main class="content-card">
   <h1>訂單已送出</h1>
-  <p>感謝您的訂購，後續購物車與訂單明細可再接續串接 orders 與 orders_items。</p>
+  <p>感謝您的訂購！</p>
+  <a href="support.jsp?tab=order">查看訂單</a>
   <a class="btn-link" href="index.jsp">回首頁</a>
 </main>
 <footer>
