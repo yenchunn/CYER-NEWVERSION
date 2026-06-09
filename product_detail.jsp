@@ -622,7 +622,7 @@ footer {
       <p class="price">NT$ <%= product.getInt("p_price") %></p>
       <p>庫存數量：<%= product.getInt("p_stock") %></p>
       <p><%= h(product.getString("p_desc")) %></p>
-      <a class="btn-link" href="shopping_cart.jsp">加入購物車</a>
+      <a class="btn-link" href="add_to_cart.jsp?p_id=<%= pId %>">加入購物車</a>
     </section>
   </div>
 

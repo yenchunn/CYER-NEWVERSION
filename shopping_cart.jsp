@@ -580,10 +580,89 @@ footer {
   <p class="page-hero-fr">shopping cart</p>
   <h1 class="page-hero-title">購物車</h1>
 </section>
+<%@ page import="java.sql.*" %>
+
+<%
+Integer memberId = (Integer) session.getAttribute("m_id");
+
+if (memberId == null) {
+    response.sendRedirect("login.jsp");
+    return;
+}
+
+Connection conn = null;
+PreparedStatement ps = null;
+ResultSet rs = null;
+int total = 0;
+%>
 <main class="content-card">
+  <%
+Class.forName("com.mysql.cj.jdbc.Driver");
+conn = DriverManager.getConnection(
+    "jdbc:mysql://localhost:3306/cyer?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Taipei",
+    "root",
+    "1234"
+);
+
+String sql =
+"SELECT c.p_id, p.p_name, p.p_price, c.quantity " +
+"FROM cart c " +
+"JOIN products p ON c.p_id = p.p_id " +
+"WHERE c.member_id = ?";
+
+ps = conn.prepareStatement(sql);
+ps.setInt(1, memberId);
+rs = ps.executeQuery();
+
+boolean hasItem = false;
+%>
+
+<div class="message">
+
+<%
+while (rs.next()) {
+    hasItem = true;
+
+    int price = rs.getInt("p_price");
+    int qty = rs.getInt("quantity");
+    int subtotal = price * qty;
+    total += subtotal;
+%>
+
+<div style="border:1px solid #ccc; padding:10px;">
+    <b><%= rs.getString("p_name") %></b><br>
+    單價：<%= price %><br>
+    數量：<%= qty %><br>
+    小計：<%= subtotal %>
+</div>
+
+<%
+}
+
+if (!hasItem) {
+%>
+    購物車是空的
+<%
+}
+%>
+
+</div>
+
+<!--<h3>總金額：<%= total %></h3>
   <div class="message">購物車目前0件商品</div>
-  <a class="btn-link" href="index.jsp">繼續選購</a>
-  <a class="btn-link" href="checkout.jsp">前往結帳</a>
+  <a class="btn-link" href="index.jsp">繼續選購</a> -->
+  <h3>總金額：<%= total %></h3>
+
+<%
+if (!hasItem) {
+%>
+    <div class="message">購物車是空的</div>
+<%
+}
+%>
+
+<a class="btn-link" href="index.jsp">繼續選購</a>
+<a class="btn-link" href="checkout.jsp">前往結帳</a>
 </main>
 <footer>
   <div class="footer-grid">
