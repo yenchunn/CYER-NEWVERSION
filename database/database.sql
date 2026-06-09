@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS `product_images`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `site_counter`;
 DROP TABLE IF EXISTS `members`;
+DROP TABLE IF EXISTS cart;
 
 CREATE TABLE IF NOT EXISTS `members` (
   `m_id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -24,6 +25,16 @@ CREATE TABLE IF NOT EXISTS `members` (
   `m_role` INT(11) NOT NULL,
   PRIMARY KEY (`m_id`),
   UNIQUE INDEX `m_email_UNIQUE` (`m_email` ASC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `cart` (
+  `cart_id` int NOT NULL AUTO_INCREMENT,
+  `member_id` int NOT NULL,
+  `p_id` int NOT NULL,
+  `quantity` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cart_id`),
+  UNIQUE KEY `uk_member_product` (`member_id`,`p_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `orders` (
