@@ -1,3 +1,4 @@
+<%@ page import="java.sql.*" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%
     request.setCharacterEncoding("UTF-8");
@@ -259,6 +260,7 @@ body {
   inset: 4px;
   border-color: var(--gold-light);
 }
+
 
 /* ===== FOOTER ===== */
 footer {
@@ -540,6 +542,60 @@ footer {
   .footer-grid {
     grid-template-columns: 1fr;
   }
+
+  .cart-item{
+    display:flex;
+    gap:20px;
+    background: var(--warm-white);
+    border:1px solid var(--border);
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow:0 6px 20px var(--shadow);
+  }
+
+  .cart-img{
+    width:120px;
+    height:120px;
+    background:white;
+    border:1px solid var(--light-grey);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .cart-img img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+
+  .cart-info h3{
+    margin-bottom:8px;
+  }
+
+  .cart-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+  }
+
+  .btn{
+    padding:6px 12px;
+    border-radius:6px;
+    text-decoration:none;
+    font-weight:bold;
+    color:white;
+  }
+
+  .btn.add{ background:#8B6835; }
+  .btn.minus{ background:#B8945A; }
+  .btn.delete{ background:#a94442; }
+
+  .qty{
+    min-width:30px;
+    text-align:center;
+  }
 }
 
 </style>
@@ -580,8 +636,6 @@ footer {
   <p class="page-hero-fr">shopping cart</p>
   <h1 class="page-hero-title">購物車</h1>
 </section>
-<%@ page import="java.sql.*" %>
-
 <%
 Integer memberId = (Integer) session.getAttribute("m_id");
 
@@ -593,11 +647,12 @@ if (memberId == null) {
 Connection conn = null;
 PreparedStatement ps = null;
 ResultSet rs = null;
+
 int total = 0;
-%>
-<main class="content-card">
-  <%
+boolean hasItem = false;
+
 Class.forName("com.mysql.cj.jdbc.Driver");
+
 conn = DriverManager.getConnection(
     "jdbc:mysql://localhost:3306/cyer?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Taipei",
     "root",
@@ -613,56 +668,93 @@ String sql =
 ps = conn.prepareStatement(sql);
 ps.setInt(1, memberId);
 rs = ps.executeQuery();
-
-boolean hasItem = false;
 %>
-
 <div class="message">
 
 <%
 while (rs.next()) {
     hasItem = true;
 
+    int id = rs.getInt("p_id");
+    String name = rs.getString("p_name");
     int price = rs.getInt("p_price");
     int qty = rs.getInt("quantity");
     int subtotal = price * qty;
     total += subtotal;
 %>
 
-<div style="border:1px solid #ccc; padding:10px;">
-    <b><%= rs.getString("p_name") %></b><br>
-    單價：<%= price %><br>
-    數量：<%= qty %><br>
-    小計：<%= subtotal %>
+  <div class="cart-item">
+
+    <div class="cart-info">
+
+      <h3><%= name %></h3>
+
+      <p>單價：<%= price %></p>
+      <p>數量：<%= qty %></p>
+      <p>小計：<%= subtotal %></p>
+
+      <div class="cart-actions">
+
+        <a class="btn minus"
+          href="cart_update.jsp?action=minus&p_id=<%=id%>">－</a>
+
+        <span class="qty"><%= qty %></span>
+
+        <a class="btn add"
+          href="cart_update.jsp?action=add&p_id=<%=id%>">＋</a>
+
+        <a class="btn delete"
+          href="cart_delete.jsp?p_id=<%=id%>">刪除</a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+<%
+} // ⭐ while 結束
+%>
+
+</div>
+
+<!-- 總金額（一定要在 while 外面） -->
+<h3>總金額：<%= total %></h3>
+
+<%
+if (!hasItem) {
+%>
+
+<div class="content-card" style="text-align:center;">
+    <h2>購物車目前沒有商品</h2>
+
+    <p style="margin:20px 0; color:#8A8278;">
+        請先挑選喜歡的商品加入購物車後再進行結帳。
+    </p>
+
+    <a class="btn-link" href="index.jsp">
+        返回首頁
+    </a>
+</div>
+
+<%
+} else {
+%>
+
+<div style="text-align:center; margin-top:30px;">
+    <a class="btn-link" href="index.jsp">繼續選購</a>
+    <a class="btn-link" href="checkout.jsp">前往結帳</a>
 </div>
 
 <%
 }
-
-if (!hasItem) {
 %>
-    購物車是空的
-<%
-}
-%>
-
-</div>
-
-<!--<h3>總金額：<%= total %></h3>
-  <div class="message">購物車目前0件商品</div>
-  <a class="btn-link" href="index.jsp">繼續選購</a> -->
-  <h3>總金額：<%= total %></h3>
 
 <%
-if (!hasItem) {
+if(rs != null) rs.close();
+if(ps != null) ps.close();
+if(conn != null) conn.close();
 %>
-    <div class="message">購物車是空的</div>
-<%
-}
-%>
-
-<a class="btn-link" href="index.jsp">繼續選購</a>
-<a class="btn-link" href="checkout.jsp">前往結帳</a>
 </main>
 <footer>
   <div class="footer-grid">

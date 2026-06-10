@@ -597,10 +597,7 @@ footer {
       <label for="address">地址</label>
       <input id="address" name="address" value="<%= session.getAttribute("m_address") == null ? "" : session.getAttribute("m_address") %>" required>
       <label for="payment">付款方式</label>
-      <select id="payment" name="payment">
-        <option value="貨到付款">貨到付款</option>
-        <option value="ATM轉帳">ATM轉帳</option>
-      </select>
+      <input type="text" value="貨到付款" readonly>
       <button class="btn" type="submit">送出訂單</button>
     </form>
   </main>
