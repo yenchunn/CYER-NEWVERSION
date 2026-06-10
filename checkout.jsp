@@ -590,6 +590,10 @@ footer {
 <% } else { %>
   <main class="form-card">
     <form action="order_process.jsp" method="post">
+      <!-- 提示會員當前結帳總額 -->
+      <div style="background: var(--cream); border-left: 3px solid var(--gold); padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; color: var(--charcoal);">
+        您本次訂單將自動套用【會員滿萬折千】優惠，請於下方確認收件資料。
+    </div>
       <label for="name">收件人姓名</label>
       <input id="name" name="name" value="<%= session.getAttribute("m_name") == null ? "" : session.getAttribute("m_name") %>" required>
       <label for="phone">電話</label>

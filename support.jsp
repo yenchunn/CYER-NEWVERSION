@@ -603,7 +603,7 @@ footer {
   <section class="member-panel">
     <% if ("order".equals(tab)) { %>
 
-      <h2>我的訂單</h2>
+      <h2 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; letter-spacing: 0.05em; margin-bottom: 24px; color: var(--charcoal); border-bottom: 2px solid var(--gold); padding-bottom: 8px;">訂單查詢</h2>
       
       <%@ page import="java.sql.*" %>
 
@@ -615,8 +615,11 @@ footer {
       PreparedStatement ps = null;
       ResultSet rs = null;
       
-      try {
+      // 宣告給明細查詢使用的 PreparedStatement 與 ResultSet
+      PreparedStatement itemPs = null;
+      ResultSet itemRs = null;
       
+      try {
           Integer memberId = (Integer) session.getAttribute("m_id");
       
           if (memberId == null) {
@@ -632,33 +635,127 @@ footer {
               "1234"
           );
       
+          // 1. 先查出該會員的所有訂單，最新的排在最前面
           ps = conn.prepareStatement(
               "SELECT * FROM orders WHERE m_id = ? ORDER BY o_id DESC"
           );
       
           ps.setInt(1, memberId);
           rs = ps.executeQuery();
-      
+          
+          boolean hasOrder = false;
           while (rs.next()) {
+              hasOrder = true;
+              int orderId = rs.getInt("o_id");
       %>
       
-      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-          訂單編號：<%= rs.getInt("o_id") %><br>
-          金額：<%= rs.getInt("o_total_price") %><br>
-          狀態：<%= rs.getString("o_status") %>
+      <!-- 外層精美訂單大卡片 -->
+      <div class="order-card" style="background: white; border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; box-shadow: 0 6px 20px var(--shadow);">
+          
+          <!-- 訂單表頭資訊 -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--light-grey); padding-bottom: 12px; margin-bottom: 16px;">
+              <div>
+                  <span style="font-size: 0.85rem; color: var(--mid-grey);">訂單編號：</span>
+                  <strong style="color: var(--charcoal); font-size: 1.1rem;">#<%= orderId %></strong>
+                  <span style="margin-left: 16px; font-size: 0.85rem; color: var(--mid-grey);">成立日期：<%= rs.getTimestamp("o_date") %></span>
+              </div>
+              <div>
+                  <!-- 根據狀態給予高質感顏色 -->
+                  <span style="background: var(--cream); color: var(--gold-dark); border: 1px solid var(--gold); padding: 4px 12px; font-size: 0.8rem; font-weight: 600;">
+                      <%= rs.getString("o_status") %>
+                  </span>
+              </div>
+          </div>
+          
+          <!-- 訂單購買產品細項標題 -->
+          <div style="font-size: 0.85rem; color: var(--mid-grey); margin-bottom: 8px; font-weight: 600;">商品明細：</div>
+          
+          <div style="background: var(--warm-white); padding: 12px 18px; border: 1px solid var(--light-grey); margin-bottom: 16px;">
+          <%
+              // 1. 新增一個變數，用來在迴圈裡默默加總這筆訂單的商品原價
+              int originalItemsTotal = 0; 
+              
+              String itemSql = "SELECT oi.item_quantity, oi.item_unit_price, p.p_name " +
+                               "FROM orders_items oi " +
+                               "JOIN products p ON oi.p_id = p.p_id " +
+                               "WHERE oi.o_id = ?";
+              itemPs = conn.prepareStatement(itemSql);
+              itemPs.setInt(1, orderId);
+              itemRs = itemPs.executeQuery();
+              
+              while(itemRs.next()) {
+                  String prodName = itemRs.getString("p_name");
+                  int unitPrice = itemRs.getInt("item_unit_price");
+                  int quantity = itemRs.getInt("item_quantity");
+                  int subtotal = unitPrice * quantity;
+                  
+                  // 每跑一項商品，就把金額加進去原價總和裡
+                  originalItemsTotal += subtotal; 
+          %>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.9rem; border-bottom: 1px dashed var(--light-grey);">
+                  <div style="color: var(--charcoal); font-weight: 400;"><%= prodName %></div>
+                  <div style="color: var(--mid-grey);">
+                      NT$ <%= unitPrice %> × <%= quantity %> 
+                      <span style="margin-left: 12px; color: var(--charcoal); font-weight: 600;">小計: NT$ <%= subtotal %></span>
+                  </div>
+              </div>
+          <%
+              }
+              if(itemRs != null) itemRs.close();
+              if(itemPs != null) itemPs.close();
+              
+              // 2. 自動計算這筆訂單當時到底折了多少錢（原價總和 - 資料庫紀錄的實付總額）
+              int orderDiscount = originalItemsTotal - rs.getInt("o_total_price");
+          %>
+          </div>
+          
+          <div style="font-size: 0.85rem; color: var(--mid-grey); margin-bottom: 12px;">
+              配送地址：<span style="color: var(--charcoal);"><%= rs.getString("o_address") %></span>
+          </div>
+          
+          <div style="text-align: right; border-top: 1px solid var(--light-grey); padding-top: 12px; line-height: 1.8;">
+              <p style="font-size: 0.88rem; color: var(--mid-grey);">
+                  商品小計：<span style="color: var(--charcoal);font-weight: 600;">NT$ <%= originalItemsTotal %></span>
+              </p>
+              
+              <% // 如果這筆訂單算出來有折扣（大於 0），畫面上才秀出這一行紅字，沒打折的訂單會自動隱藏！ %>
+              <% if (orderDiscount > 0) { %>
+                  <p style="font-size: 0.88rem; color: #a94442; font-weight: 400;">
+                      會員優惠（滿萬折千）：- NT$ <%= orderDiscount %></span>
+                  </p>
+              <% } %>
+              
+              <div style="margin-top: 6px;">
+                  <span style="font-size: 0.9rem; color: var(--charcoal); font-weight: 400;">訂單總額：</span>
+                  <strong style="font-size: 1.3rem; color: var(--gold-dark);">
+                      NT$ <%= rs.getInt("o_total_price") %>
+                  </strong>
+              </div>
+          </div>
       </div>
       
       <%
           }
+          if (!hasOrder) {
+      %>
+          <div style="text-align: center; padding: 48px; background: white; border: 1px solid var(--border);">
+              <p style="color: var(--mid-grey);">您目前尚無任何訂單紀錄。</p>
+              <a href="index.jsp" class="btn" style="margin-top: 16px; text-decoration: none;">前往選購商品</a>
+          </div>
+      <%
+          }
       
       } catch(Exception e) {
-          out.println("錯誤：" + e.getMessage());
+          out.println("<div style='color:red; padding:10px;'>系統撈取訂單失敗：" + e.getMessage() + "</div>");
       } finally {
+          try { if (itemRs != null) itemRs.close(); } catch(Exception e) {}
+          try { if (itemPs != null) itemPs.close(); } catch(Exception e) {}
           try { if (rs != null) rs.close(); } catch(Exception e) {}
           try { if (ps != null) ps.close(); } catch(Exception e) {}
           try { if (conn != null) conn.close(); } catch(Exception e) {}
       }
       %>
+ 
     <% } else if ("shipping".equals(tab)) { %>
       <h2>配送說明</h2>
       <p>一般商品於付款完成後 3 至 5 個工作天安排出貨，大型家電將另行電話確認配送時間。</p>

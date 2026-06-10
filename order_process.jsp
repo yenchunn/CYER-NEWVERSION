@@ -60,23 +60,30 @@ try {
 
     int total = 0;
     // =========================
-    // STEP 2：計算總價
+    // STEP 2：計算總價（加入會員滿萬折千優惠）
     // =========================
     while (cartRs.next()) {
         total += cartRs.getInt("p_price") * cartRs.getInt("quantity");
     }
 
+    // 【核心優惠邏輯】在這裡正確宣告並計算折扣
+    int discount = 0; 
+    if (total >= 10000) {
+        discount = (total / 10000) * 1000; 
+    }
+    int finalTotal = total - discount; // 折抵後的最終應付總額
+
     // reset cursor（MySQL 不一定支援，所以直接重查）
     cartRs.close();
     cartPs.close();
 
-    // 重新查一次（給 step3/4 用）
+    // 重新查一次（給 step4 用明細與扣庫存）
     cartPs = conn.prepareStatement(cartSql);
     cartPs.setInt(1, memberId);
     cartRs = cartPs.executeQuery();
 
     // =========================
-    // STEP 3：建立訂單
+    // STEP 3：建立訂單（已完美融合滿萬折千 finalTotal）
     // =========================
     PreparedStatement orderPs = conn.prepareStatement(
         "INSERT INTO orders(m_id, o_date, o_total_price, o_shupping, o_address, o_payment, o_status) " +
@@ -85,7 +92,7 @@ try {
     );
 
     orderPs.setInt(1, memberId);
-    orderPs.setInt(2, total);
+    orderPs.setInt(2, finalTotal); // 精準寫入折扣後的實付金額
     orderPs.setString(3, address);
 
     orderPs.executeUpdate();
@@ -109,7 +116,7 @@ try {
         int qty = cartRs.getInt("quantity");
         int price = cartRs.getInt("p_price");
 
-        // order_items
+        // 寫入訂單明細
         PreparedStatement itemPs = conn.prepareStatement(
             "INSERT INTO orders_items(o_id, p_id, item_quantity, item_unit_price) " +
             "VALUES (?, ?, ?, ?)"
@@ -150,7 +157,7 @@ try {
     clearPs.close();
 
     // =========================
-    // STEP 6：導向訂單頁
+    // STEP 6：導向歷史訂單查詢頁面
     // =========================
     response.sendRedirect("support.jsp?tab=order");
 

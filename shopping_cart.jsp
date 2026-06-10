@@ -719,7 +719,34 @@ while (rs.next()) {
 </div>
 
 <!-- 總金額（一定要在 while 外面） -->
-<h3>總金額：<%= total %></h3>
+<!-- ===== 滿萬折千會員優惠計算 ===== -->
+<%
+    int discount = 0;
+    if (total >= 10000) {
+        // 每滿 10000 就折 1000（若只想滿萬折 1000 不累計，可改為 discount = 1000;）
+        discount = (total / 10000) * 1000; 
+    }
+    int finalTotal = total - discount;
+%>
+
+<div style="background: var(--warm-white); border: 1px solid var(--border); padding: 20px; margin: 24px 0; text-align: right; box-shadow: 0 4px 15px var(--shadow);">
+    <p style="font-size: 0.95rem; color: var(--mid-grey); margin-bottom: 6px;">
+        商品小計：<span style="color: var(--charcoal); font-size: 1.1rem; font-weight: 600;">NT$ <%= total %></span>
+    </p>
+    <% if (discount > 0) { %>
+        <p style="font-size: 0.95rem; color: #a94442; margin-bottom: 6px; font-weight: 400;">
+            會員專屬優惠（滿萬折千）：<span style=" font-size: 1.1rem;">- NT$ <%= discount %></span>
+        </p>
+    <% } else { %>
+        <p style="font-size: 0.85rem; color: var(--mid-grey); margin-bottom: 6px; font-style: italic;">
+            * 再消費 NT$ <%= (10000 - total) %> 即可享有滿萬折千會員優惠！
+        </p>
+    <% } %>
+    <hr style="border: 0; border-top: 1px solid var(--light-grey); margin: 12px 0;">
+    <h3 style=" font-size: 1.4rem; color: var(--gold-dark);">
+        應付總金額：<span style="font-weight: 700;">NT$ <%= finalTotal %></span>
+    </h3>
+</div>
 
 <%
 if (!hasItem) {
