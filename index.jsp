@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.sql.*" %>
 <%!
+    // 1. 宣告資料庫連線設定
     private static final String DB_URL = "jdbc:mysql://localhost:3306/cyer?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Taipei";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "1234";
@@ -26,24 +27,52 @@
     response.setCharacterEncoding("UTF-8");
     pageContext.setAttribute("currentPage", "index");
     
-    // 從系統全域環境嘗試抓取計數器數字
-    Integer visitorCount = (Integer) application.getAttribute("visitor_count");
-    
-    // 如果伺服器剛開機（完全沒人進來過），預設基礎值為 1200
-    if (visitorCount == null) {
-        visitorCount = 1200; 
-        application.setAttribute("visitor_count", visitorCount); // 順便把它同步寫回 application 鎖定
-    }
-    
-    // 檢查這個視窗（Session）是不是第一次來到首頁
-    if (session.getAttribute("has_visited_index") == null) {
-        synchronized (application) {
-            // 是的話，再從 1200 開始往上加 1（所以第一個點進來的人會看到 1201）
-            visitorCount++;
-            application.setAttribute("visitor_count", visitorCount);
+    // 宣告一個 Java 變數，用來準備儲存從 MySQL 撈出來的瀏覽人次
+    int currentViews = 0;
+
+    // 開啟資料庫連線
+    try {
+        Connection conn = getConnection();
+
+        // 【第一步：防呆初始化】檢查資料庫裡面有沒有 count_id = 1 的那一列紀錄，防範資料表是空的
+        String checkSql = "SELECT COUNT(*) FROM site_counter WHERE count_id = 1";
+        try (PreparedStatement checkPs = conn.prepareStatement(checkSql);
+             ResultSet checkRs = checkPs.executeQuery()) {
+            checkRs.next();
+            if (checkRs.getInt(1) == 0) {
+                String initSql = "INSERT INTO site_counter (count_id, total_views) VALUES (1, 1200)";
+                try (PreparedStatement initPs = conn.prepareStatement(initSql)) {
+                    initPs.executeUpdate();
+                }
+            }
         }
-        // 標記該視窗：你已經參訪過了，之後重新整理（F5）都不會再幫你加數字
-        session.setAttribute("has_visited_index", true);
+
+        // 【第二步：判斷是否為新訪客】
+        if (session.getAttribute("has_visited_index") == null) {
+            // 進到這裡，代表這個瀏覽器視窗是「第一次」打開首頁， SQL 讓數字直接在資料庫裡 +1
+            String updateSql = "UPDATE site_counter SET total_views = total_views + 1 WHERE count_id = 1";
+            try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
+                updatePs.executeUpdate();
+            }
+
+            session.setAttribute("has_visited_index", true);
+        }
+
+        // 【第三步：撈取最新數字】不論是新訪客加完一票，還是舊訪客重新整理，通通撈出最新數字呈現於畫面
+        String selectSql = "SELECT total_views FROM site_counter WHERE count_id = 1";
+        try (PreparedStatement selectPs = conn.prepareStatement(selectSql);
+             ResultSet selectRs = selectPs.executeQuery()) {
+            if (selectRs.next()) {
+                currentViews = selectRs.getInt("total_views");
+            }
+        }
+
+        // 關閉資料庫連線
+        conn.close();
+
+    } catch (Exception e) {
+        // 如果連線失敗，在網頁後台印出錯誤訊息
+        System.out.println("計數器資料庫運作發生錯誤：" + e.getMessage());
     }
 %>
 <!DOCTYPE html>
@@ -564,6 +593,55 @@ footer {
   border-bottom: 1px solid var(--light-grey);
 }
 
+/* ===== 會員優惠動態跑馬燈樣式 ===== */
+.promo-marquee-wrapper {
+  background: var(--warm-white);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  height: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.promo-marquee-content {
+  display: flex;
+  white-space: nowrap;
+  position: absolute;
+  animation: marquee-scroll 25s linear infinite;
+}
+
+.promo-marquee-content:hover {
+  animation-play-state: paused;
+}
+
+.promo-item {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.88rem;
+  letter-spacing: 0.15em;
+  color: var(--charcoal);
+  padding: 0 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.promo-tag {
+  background: var(--gold);
+  color: white;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  letter-spacing: 0.05em;
+  font-weight: 400;
+}
+
+
+@keyframes marquee-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
 @media (max-width: 900px) {
   .header-top,
   .container {
@@ -637,6 +715,15 @@ footer {
   <p class="page-hero-sub">家電不只是拿回家用的，也可以是家中高級的裝飾品。</p>
 </section>
 
+<div class="promo-marquee-wrapper">
+  <div class="promo-marquee-content">
+    <div class="promo-item"><span class="promo-tag">EXCLUSIVE</span> 尊榮會員專屬美學盛宴：全店消費即刻享有「滿 10000 折 1000」頂級優惠！</div>
+    <div class="promo-item"><span class="promo-tag">SPECIAL</span> 質感家電選品限時特惠中，用細緻美學點綴您的優雅生活。</div>
+    <div class="promo-item"><span class="promo-tag">EXCLUSIVE</span> 尊榮會員專屬美學盛宴：全店消費即刻享有「滿 10000 折 1000」頂級優惠！</div>
+    <div class="promo-item"><span class="promo-tag">SPECIAL</span> 質感家電選品限時特惠中，用細緻美學點綴您的優雅生活。</div>
+  </div>
+</div>
+
 <main class="container page-section">
   <h2 class="section-title">商品分類</h2>
   <p class="section-subtitle">CLASSIFICATION</p>
@@ -683,7 +770,16 @@ footer {
     </div>
   </section>
 
-  <p class="section-subtitle">Visitor Count: <%= visitorCount %></p>
+  <p class="section-subtitle" style="margin-top: 56px; font-family: 'Cormorant Garamond', serif; font-size: 0.82rem; letter-spacing: 0.15em;">
+    VISITOR COUNT: <span style="color: var(--charcoal); font-weight: 400;"><%= currentViews %></span>
+  </p>
+  <br>
+  <div style="text-align: center; margin-top: -24px; margin-bottom: 32px;"></div>
+    <a href="feedback.jsp" target="_blank" 
+       style="font-family: 'Noto Serif TC', serif; font-size: 0.85rem; color: var(--gold); text-decoration: none; letter-spacing: 0.1em; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.3s, border-color 0.3s ease">
+       組員心得連結 ➔
+    </a>
+  </div>
 </main>
 
 <footer>

@@ -620,9 +620,31 @@ footer {
       <p class="section-subtitle" style="text-align:left;margin-bottom:10px;"><%= h(product.getString("p_category")) %></p>
       <h1><%= h(product.getString("p_name")) %></h1>
       <p class="price">NT$ <%= product.getInt("p_price") %></p>
-      <p>庫存數量：<%= product.getInt("p_stock") %></p>
-      <p><%= h(product.getString("p_desc")) %></p>
-      <a class="btn-link" href="add_to_cart.jsp?p_id=<%= pId %>">加入購物車</a>
+      <% 
+      // 1. 先將該產品的即時庫存數量存入 Java 變數中
+      int currentStock = product.getInt("p_stock"); 
+  %>
+  
+  <!-- 2. 優雅呈現庫存，若為 0 則顯示紅字警示 -->
+  <p>庫存數量：
+      <% if (currentStock > 0) { %>
+          <span style="color: var(--charcoal); font-weight: 400;"><%= currentStock %></span>
+      <% } else { %>
+          <span style="color: #a94442; font-weight: 600;">已售罄 (缺貨中)</span>
+      <% } %>
+  </p>
+  
+  <p style="margin-bottom: 20px;"><%= h(product.getString("p_desc")) %></p>
+  
+  <!-- 3. 【防呆按鈕】若庫存大於 0 才允許導向購物車 -->
+  <% if (currentStock > 0) { %>
+      <a class="btn-link" href="add_to_cart.jsp?p_id=<%= pId %>" style="text-align: center; width: 100%; max-width: 250px;">加入購物車</a>
+  <% } else { %>
+      <a class="btn-link" href="javascript:void(0);" onclick="alert('目前沒有庫存，無法加入購物車！');" 
+         style="background: #D1C9BC; color: #FFFFFF; cursor: not-allowed; text-align: center; width: 100%; max-width: 250px;">
+          目前沒有庫存
+      </a>
+  <% } %>
     </section>
   </div>
 
