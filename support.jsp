@@ -649,7 +649,7 @@ footer {
               int orderId = rs.getInt("o_id");
       %>
       
-      <!-- 外層精美訂單大卡片 -->
+      <!-- 外層訂單大卡片 -->
       <div class="order-card" style="background: white; border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; box-shadow: 0 6px 20px var(--shadow);">
           
           <!-- 訂單表頭資訊 -->
@@ -660,7 +660,7 @@ footer {
                   <span style="margin-left: 16px; font-size: 0.85rem; color: var(--mid-grey);">成立日期：<%= rs.getTimestamp("o_date") %></span>
               </div>
               <div>
-                  <!-- 根據狀態給予高質感顏色 -->
+                  <!-- 高質感顏色 -->
                   <span style="background: var(--cream); color: var(--gold-dark); border: 1px solid var(--gold); padding: 4px 12px; font-size: 0.8rem; font-weight: 600;">
                       <%= rs.getString("o_status") %>
                   </span>

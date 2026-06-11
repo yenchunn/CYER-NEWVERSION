@@ -49,14 +49,14 @@
                 // 如果是新名字或使用者輸入了新的匿名名稱，自動創立該身份，並一次補齊所有限制欄位
                 if (finalMemberId == 0) {
                     
-                    // 修正點：利用當前時間的千分之一秒（System.currentTimeMillis()），動態製造絕對不重複的隨機信箱
+                    // 用當前時間的千分之一秒（System.currentTimeMillis()），動態製造絕對不重複的隨機信箱
                     String randomEmail = "guest_" + System.currentTimeMillis() + "@cyer.com";
 
-                    // 一口氣把所有 NOT NULL 的欄位（信箱、密碼、電話、地址、權限）通通加進來
+                    // 把所有 NOT NULL 的欄位（信箱、密碼、電話、地址、權限）通通加進來
                     String insertMemberSql = "INSERT INTO members (m_name, m_email, m_pwd, m_phone, m_address, m_role) VALUES (?, ?, ?, ?, ?, ?)";
                     try (PreparedStatement insertMemPs = conn.prepareStatement(insertMemberSql, Statement.RETURN_GENERATED_KEYS)) {
                         insertMemPs.setString(1, mName.trim());
-                        insertMemPs.setString(2, randomEmail);         // 修正點：改帶入動態產生的不重複信箱
+                        insertMemPs.setString(2, randomEmail);         // 改帶入動態產生的不重複信箱
                         insertMemPs.setString(3, "default123");       
                         insertMemPs.setString(4, "0900000000");       
                         insertMemPs.setString(5, "台灣美學空間");        

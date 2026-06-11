@@ -20,7 +20,7 @@ Connection conn = DriverManager.getConnection(
 );
 
 PreparedStatement ps = null;
-ResultSet rs = null;   // ⭐⭐⭐ 就放這裡
+ResultSet rs = null;
 
 if ("add".equals(action)) {
 

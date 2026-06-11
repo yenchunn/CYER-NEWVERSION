@@ -26,7 +26,7 @@ try {
     );
 
     // =========================
-    // STEP 0：檢查購物車是否為空
+    // 檢查購物車是否為空
     // =========================
     PreparedStatement checkPs = conn.prepareStatement(
         "SELECT COUNT(*) FROM cart WHERE member_id = ?"
@@ -45,7 +45,7 @@ try {
     checkPs.close();
 
     // =========================
-    // STEP 1：讀購物車（去重 SUM）
+    // 讀購物車
     // =========================
     String cartSql =
         "SELECT c.p_id, SUM(c.quantity) AS quantity, p.p_price " +
@@ -60,30 +60,30 @@ try {
 
     int total = 0;
     // =========================
-    // STEP 2：計算總價（加入會員滿萬折千優惠）
+    // 計算總價，加入會員滿萬折千優惠
     // =========================
     while (cartRs.next()) {
         total += cartRs.getInt("p_price") * cartRs.getInt("quantity");
     }
 
-    // 【核心優惠邏輯】在這裡正確宣告並計算折扣
+    // 宣告並計算折扣
     int discount = 0; 
     if (total >= 10000) {
         discount = (total / 10000) * 1000; 
     }
     int finalTotal = total - discount; // 折抵後的最終應付總額
 
-    // reset cursor（MySQL 不一定支援，所以直接重查）
+    // reset cursor
     cartRs.close();
     cartPs.close();
 
-    // 重新查一次（給 step4 用明細與扣庫存）
+    // 用明細與扣庫存
     cartPs = conn.prepareStatement(cartSql);
     cartPs.setInt(1, memberId);
     cartRs = cartPs.executeQuery();
 
     // =========================
-    // STEP 3：建立訂單（已完美融合滿萬折千 finalTotal）
+    // 建立訂單（已完美融合滿萬折千 finalTotal）
     // =========================
     PreparedStatement orderPs = conn.prepareStatement(
         "INSERT INTO orders(m_id, o_date, o_total_price, o_shupping, o_address, o_payment, o_status) " +
@@ -108,7 +108,7 @@ try {
     orderPs.close();
 
     // =========================
-    // STEP 4：寫 order_items + 扣庫存
+    // 寫 order_items + 扣庫存
     // =========================
     while (cartRs.next()) {
 
@@ -129,7 +129,7 @@ try {
         itemPs.executeUpdate();
         itemPs.close();
 
-        // 扣庫存（防超賣）
+        // 扣庫存，防超賣
         PreparedStatement stockPs = conn.prepareStatement(
             "UPDATE products SET p_stock = p_stock - ? " +
             "WHERE p_id = ? AND p_stock >= ?"
@@ -146,7 +146,7 @@ try {
     cartPs.close();
 
     // =========================
-    // STEP 5：清空購物車
+    // 清空購物車
     // =========================
     PreparedStatement clearPs = conn.prepareStatement(
         "DELETE FROM cart WHERE member_id = ?"
@@ -157,7 +157,7 @@ try {
     clearPs.close();
 
     // =========================
-    // STEP 6：導向歷史訂單查詢頁面
+    // 導向歷史訂單查詢頁面
     // =========================
     response.sendRedirect("support.jsp?tab=order");
 
