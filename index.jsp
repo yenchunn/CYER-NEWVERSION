@@ -30,48 +30,38 @@
     // 宣告一個 Java 變數，用來準備儲存從 MySQL 撈出來的瀏覽人次
     int currentViews = 0;
 
-    // 開啟資料庫連線
     try {
         Connection conn = getConnection();
-
-        // 【第一步：防呆初始化】檢查資料庫裡面有沒有 count_id = 1 的那一列紀錄，防範資料表是空的
-        String checkSql = "SELECT COUNT(*) FROM site_counter WHERE count_id = 1";
-        try (PreparedStatement checkPs = conn.prepareStatement(checkSql);
-             ResultSet checkRs = checkPs.executeQuery()) {
-            checkRs.next();
-            if (checkRs.getInt(1) == 0) {
-                String initSql = "INSERT INTO site_counter (count_id, total_views) VALUES (1, 1200)";
-                try (PreparedStatement initPs = conn.prepareStatement(initSql)) {
-                    initPs.executeUpdate();
-                }
-            }
+    
+        // 1️⃣ 保底 1200（只要小於1200就修正）
+        String initSql = "UPDATE site_counter SET total_views = GREATEST(total_views, 1200) WHERE count_id = 1";
+        try (PreparedStatement initPs = conn.prepareStatement(initSql)) {
+            initPs.executeUpdate();
         }
-
-        // 【第二步：判斷是否為新訪客】
+    
+        // 2️⃣ 新訪客才 +1
         if (session.getAttribute("has_visited_index") == null) {
-            // 進到這裡，代表這個瀏覽器視窗是「第一次」打開首頁， SQL 讓數字直接在資料庫裡 +1
             String updateSql = "UPDATE site_counter SET total_views = total_views + 1 WHERE count_id = 1";
             try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
                 updatePs.executeUpdate();
             }
-
+    
             session.setAttribute("has_visited_index", true);
         }
-
-        // 【第三步：撈取最新數字】不論是新訪客加完一票，還是舊訪客重新整理，通通撈出最新數字呈現於畫面
+    
+        // 3️⃣ 讀取最新數字
         String selectSql = "SELECT total_views FROM site_counter WHERE count_id = 1";
         try (PreparedStatement selectPs = conn.prepareStatement(selectSql);
-             ResultSet selectRs = selectPs.executeQuery()) {
+            ResultSet selectRs = selectPs.executeQuery()) {
+    
             if (selectRs.next()) {
                 currentViews = selectRs.getInt("total_views");
             }
         }
-
-        // 關閉資料庫連線
+    
         conn.close();
-
+    
     } catch (Exception e) {
-        // 如果連線失敗，在網頁後台印出錯誤訊息
         System.out.println("計數器資料庫運作發生錯誤：" + e.getMessage());
     }
 %>
