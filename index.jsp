@@ -732,7 +732,7 @@ footer {
     <div class="cyer-product-grid">
 <%
     try (Connection conn = getConnection();
-         PreparedStatement ps = conn.prepareStatement("SELECT p_id, p_name, p_price, p_desc, p_image FROM products ORDER BY p_id LIMIT 3");
+         PreparedStatement ps = conn.prepareStatement("SELECT p_id, p_name, p_price, p_desc, p_image FROM products WHERE is_active = 1 ORDER BY p_id LIMIT 3");
          ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
             String desc = rs.getString("p_desc");

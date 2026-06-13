@@ -191,6 +191,9 @@ INSERT INTO `products` VALUES (1,'CYER 清淨空氣機 A1',12900,18,'適合小�
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 
+ALTER TABLE `products`
+  ADD COLUMN `is_active` tinyint NOT NULL DEFAULT '1';
+
 --
 -- Table structure for table `reviews`
 --
