@@ -546,6 +546,12 @@ footer {
 
 </style>
 </head>
+<%
+if(session.getAttribute("m_id") != null){
+    response.sendRedirect("member.jsp");
+    return;
+}
+%>
 <body>
 <%
     String currentPage = (String) pageContext.getAttribute("currentPage");

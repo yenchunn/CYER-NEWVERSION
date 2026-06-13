@@ -31,6 +31,21 @@
     String mPhone = request.getParameter("m_phone");
     String mAddress = request.getParameter("m_address");
 
+    if (mEmail == null || !mEmail.matches("^[A-Za-z0-9._%+-]+@gmail\\.com$")) {
+        response.sendRedirect("register.jsp?error=invalid_email");
+        return;
+    }
+
+    if (mPwd == null || mPwd.length() < 8) {
+        response.sendRedirect("register.jsp?error=weak_pwd");
+        return;
+    }
+
+    if (mPhone == null || !mPhone.matches("^\\d{10}$")) {
+        response.sendRedirect("register.jsp?error=invalid_phone");
+        return;
+    }
+
     String sql = "INSERT INTO members (m_email, m_pwd, m_name, m_phone, m_address, m_role) VALUES (?, ?, ?, ?, ?, 0)";
 
     try (Connection conn = getConnection();
@@ -40,7 +55,13 @@
         ps.setString(3, mName);
         ps.setString(4, mPhone);
         ps.setString(5, mAddress);
-        ps.executeUpdate();
+        int rows = ps.executeUpdate();
+
+        if (rows == 0) {
+            response.sendRedirect("register.jsp?error=1");
+            return;
+        }
+        
         try (ResultSet keys = ps.getGeneratedKeys()) {
             if (keys.next()) {
                 session.setAttribute("m_id", keys.getInt(1));

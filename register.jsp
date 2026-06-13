@@ -545,6 +545,12 @@ footer {
 
 </style>
 </head>
+<%
+if(session.getAttribute("m_id") != null){
+    response.sendRedirect("member.jsp");
+    return;
+}
+%>
 <body>
 <%
     String currentPage = (String) pageContext.getAttribute("currentPage");
@@ -582,27 +588,54 @@ footer {
   <h1>會員註冊</h1>
   <% if ("duplicate".equals(error)) { %>
     <div class="message">此 Email 已經註冊。</div>
-  <% } else if ("1".equals(error)) { %>
-    <div class="message">註冊失敗，請確認欄位內容。</div>
+
+  <% } else if ("invalid_email".equals(error)) { %>
+      <div class="message">Email 必須是 Gmail 格式。</div>
+
+  <% } else if ("weak_pwd".equals(error)) { %>
+      <div class="message">密碼至少需要 8 碼。</div>
+
+  <% } else if ("invalid_phone".equals(error)) { %>
+      <div class="message">電話必須是 10 位數字。</div>
+
+  <% } else { %>
+      <div class="message">❌ 註冊失敗，請重新再試。</div>
   <% } %>
   <form action="register_process.jsp" method="post">
     <label for="m_name">姓名</label>
     <input id="m_name" name="m_name" required>
 
     <label for="m_email">Email</label>
-    <input id="m_email" type="email" name="m_email" required>
+    <input id="m_email" type="email" name="m_email" pattern="[a-zA-Z0-9._%+-]+@gmail\.com" title="請使用 Gmail 信箱" required>
+    <small id="emailMsg"></small>
 
     <label for="m_pwd">密碼</label>
     <input id="m_pwd" type="password" name="m_pwd" required>
 
+    <label for="m_pwd2">確認密碼</label>
+    <input id="m_pwd2" type="password" required>
+
     <label for="m_phone">電話</label>
-    <input id="m_phone" name="m_phone" required>
+    <input id="m_phone" name="m_phone" pattern="\d{10}" title="請輸入10位數手機號碼" required>
 
     <label for="m_address">地址</label>
     <input id="m_address" name="m_address">
 
     <button class="btn" type="submit">註冊</button>
   </form>
+  <script>
+    document.querySelector("form").addEventListener("submit", function(e){
+    
+        let pwd = document.getElementById("m_pwd").value;
+        let pwd2 = document.getElementById("m_pwd2").value;
+    
+        if(pwd !== pwd2){
+            alert("密碼不一致，請重新輸入");
+            e.preventDefault();
+        }
+    
+    });
+    </script>
   <p style="margin-top:18px;">已有帳號？<a href="login.jsp">前往登入</a></p>
 </main>
 
