@@ -625,7 +625,7 @@ footer {
       int currentStock = product.getInt("p_stock"); 
   %>
   
-  <!-- 2. 優雅呈現庫存，若為 0 則顯示紅字警示 -->
+  <!-- 2. 呈現庫存，若為 0 則顯示紅字警示 -->
   <p>庫存數量：
       <% if (currentStock > 0) { %>
           <span style="color: var(--charcoal); font-weight: 400;"><%= currentStock %></span>
