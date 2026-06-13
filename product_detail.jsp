@@ -25,6 +25,7 @@
     request.setCharacterEncoding("UTF-8");
     response.setCharacterEncoding("UTF-8");
     pageContext.setAttribute("currentPage", "");
+    String cartError = request.getParameter("cart_error");
     int pId = 0;
     try {
         pId = Integer.parseInt(request.getParameter("p_id"));
@@ -607,7 +608,7 @@ footer {
 
 <main class="container page-section">
 <%
-    String detailSql = "SELECT p_id, p_name, p_price, p_stock, p_desc, p_category, p_image FROM products WHERE p_id = ?";
+    String detailSql = "SELECT p_id, p_name, p_price, p_stock, p_desc, p_category, p_image FROM products WHERE p_id = ? AND is_active = 1";
     try (Connection conn = getConnection();
          PreparedStatement ps = conn.prepareStatement(detailSql)) {
         ps.setInt(1, pId);
@@ -617,6 +618,13 @@ footer {
   <div class="detail-layout">
     <img class="detail-image" src="<%= h(product.getString("p_image")) %>" alt="<%= h(product.getString("p_name")) %>">
     <section>
+      <% if ("stock".equals(cartError)) { %>
+        <div class="message">購買數量超過庫存，請重新輸入購買數量!</div>
+      <% } else if ("invalid".equals(cartError)) { %>
+        <div class="message">購買數量必須是大於 0 的數字，請重新輸入。</div>
+      <% } else if ("notfound".equals(cartError)) { %>
+        <div class="message">商品不存在或已下架。</div>
+      <% } %>
       <p class="section-subtitle" style="text-align:left;margin-bottom:10px;"><%= h(product.getString("p_category")) %></p>
       <h1><%= h(product.getString("p_name")) %></h1>
       <p class="price">NT$ <%= product.getInt("p_price") %></p>
@@ -638,7 +646,13 @@ footer {
   
   <!-- 3. 【防呆按鈕】若庫存大於 0 才允許導向購物車 -->
   <% if (currentStock > 0) { %>
-      <a class="btn-link" href="add_to_cart.jsp?p_id=<%= pId %>" style="text-align: center; width: 100%; max-width: 250px;">加入購物車</a>
+      <form action="add_to_cart.jsp" method="post" style="max-width:250px;">
+        <input type="hidden" name="p_id" value="<%= pId %>">
+        <label for="quantity">購買數量</label>
+        <input id="quantity" name="quantity" type="number" min="1" max="<%= currentStock %>" value="1" required
+               style="width:100%; padding:10px; margin:8px 0 0; border:1px solid var(--border);">
+        <button class="btn-link" type="submit" style="text-align: center; width: 100%; max-width: 250px;">加入購物車</button>
+      </form>
   <% } else { %>
       <a class="btn-link" href="javascript:void(0);" onclick="alert('目前沒有庫存，無法加入購物車！');" 
          style="background: #D1C9BC; color: #FFFFFF; cursor: not-allowed; text-align: center; width: 100%; max-width: 250px;">

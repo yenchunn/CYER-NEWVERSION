@@ -41,7 +41,13 @@
                 session.setAttribute("m_phone", rs.getString("m_phone"));
                 session.setAttribute("m_address", rs.getString("m_address"));
                 session.setAttribute("m_role", rs.getInt("m_role"));
-                response.sendRedirect("member.jsp");
+                boolean isAdmin = rs.getInt("m_role") == 1;
+                session.setAttribute("is_admin", isAdmin);
+                if (isAdmin) {
+                    response.sendRedirect("admin_index.jsp");
+                } else {
+                    response.sendRedirect("member.jsp");
+                }
             } else {
                 response.sendRedirect("login.jsp?error=1");
             }

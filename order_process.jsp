@@ -29,7 +29,7 @@ try {
     // 檢查購物車是否為空
     // =========================
     PreparedStatement checkPs = conn.prepareStatement(
-        "SELECT COUNT(*) FROM cart WHERE member_id = ?"
+        "SELECT COUNT(*) FROM cart c JOIN products p ON c.p_id = p.p_id WHERE c.member_id = ? AND p.is_active = 1"
     );
     checkPs.setInt(1, memberId);
 
@@ -48,10 +48,10 @@ try {
     // 讀購物車
     // =========================
     String cartSql =
-        "SELECT c.p_id, SUM(c.quantity) AS quantity, p.p_price " +
+        "SELECT c.p_id, SUM(c.quantity) AS quantity, p.p_price, p.p_stock " +
         "FROM cart c JOIN products p ON c.p_id = p.p_id " +
-        "WHERE c.member_id = ? " +
-        "GROUP BY c.p_id, p.p_price";
+        "WHERE c.member_id = ? AND p.is_active = 1 " +
+        "GROUP BY c.p_id, p.p_price, p.p_stock";
 
     PreparedStatement cartPs = conn.prepareStatement(cartSql);
     cartPs.setInt(1, memberId);
@@ -63,6 +63,10 @@ try {
     // 計算總價，加入會員滿萬折千優惠
     // =========================
     while (cartRs.next()) {
+        if (cartRs.getInt("quantity") > cartRs.getInt("p_stock")) {
+            response.sendRedirect("shopping_cart.jsp?msg=stock");
+            return;
+        }
         total += cartRs.getInt("p_price") * cartRs.getInt("quantity");
     }
 

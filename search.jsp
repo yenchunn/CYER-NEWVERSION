@@ -279,7 +279,7 @@ footer { background: var(--charcoal); color: var(--light-grey); padding: 60px; }
   <div class="cyer-product-grid">
     <%
     // 修正點：移除 OR p_desc LIKE ?，讓搜尋只針對「品名」或「分類」
-    String productSql = "SELECT p_id, p_name, p_price, p_desc, p_image FROM products WHERE p_name LIKE ? OR p_category LIKE ? ORDER BY p_id LIMIT 12";
+    String productSql = "SELECT p_id, p_name, p_price, p_desc, p_image FROM products WHERE is_active = 1 AND (p_name LIKE ? OR p_category LIKE ?) ORDER BY p_id LIMIT 12";
     try (Connection conn = getConnection();
          PreparedStatement ps = conn.prepareStatement(productSql)) {
         

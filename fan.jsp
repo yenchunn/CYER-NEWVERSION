@@ -623,7 +623,7 @@ footer {
   <h2 class="section-title"><%= h(categoryName) %>商品清單</h2>
   <div class="cyer-product-grid">
 <%
-    String productSql = "SELECT p_id, p_name, p_price, p_desc, p_image FROM products WHERE p_category = ? ORDER BY p_id LIMIT 6";
+    String productSql = "SELECT p_id, p_name, p_price, p_desc, p_image FROM products WHERE p_category = ? AND is_active = 1 ORDER BY p_id LIMIT 6";
     try (Connection conn = getConnection();
          PreparedStatement ps = conn.prepareStatement(productSql)) {
         ps.setString(1, categoryName);
