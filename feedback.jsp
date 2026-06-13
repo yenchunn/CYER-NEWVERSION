@@ -145,7 +145,7 @@
   <h2>組員心得</h2>
 
   <div class="experience-box">
-    <div class="experience-name">杜書瑋</div>
+    <div class="experience-name">杜書瑋(25%)</div>
     <div class="experience-text">
       在這次專案中，我參與了會員登入與購物車功能的開發。會員登入部分主要負責前端介面設計與資料庫調整，而購物車部分則參與前端、後端、JSP 與資料庫的建置與整合。對我而言，最具挑戰性的部分並非程式撰寫本身，而是如何規劃整體的運作邏輯。很高興的是，我和組員們都十分投入，從需求討論到共同解決問題，每週都會固定花至少兩個小時討論功能運作方式、工作分配，以及是否有需要協助的地方。
       在開發過程中，我們也逐漸發現實際成果與最初的設計之間難免會出現落差。原本以為完成架構規劃後，問題就能迎刃而解，但實際執行時仍會遇到許多需要調整與修正的地方。這讓我更真實地體會到專案開發的不容易，以及理論與實務之間的差異。<br><br>
@@ -157,21 +157,21 @@
   </div>
 
   <div class="experience-box">
-    <div class="experience-name">黃語芬</div>
+    <div class="experience-name">黃語芬(25%)</div>
     <div class="experience-text">
       這是黃語芬的心得內容。
     </div>
   </div>
 
   <div class="experience-box">
-    <div class="experience-name">陳彥均</div>
+    <div class="experience-name">陳彥均(25%)</div>
     <div class="experience-text">
       這是陳彥均的心得內容。
     </div>
   </div>
 
   <div class="experience-box">
-    <div class="experience-name">鍾其睿</div>
+    <div class="experience-name">鍾其睿(25%)</div>
     <div class="experience-text">
       這是鍾其睿的心得內容。
     </div>
