@@ -607,6 +607,49 @@ footer {
         currentPage = "";
     }
 %>
+<%
+Integer memberIdForCart = (Integer) session.getAttribute("m_id");
+
+int cartCount = 0;
+
+if(memberIdForCart != null){
+
+    Connection cartConn = null;
+    PreparedStatement cartPs = null;
+    ResultSet cartRs = null;
+
+    try{
+
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
+        cartConn = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/cyer?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Taipei",
+            "root",
+            "1234"
+        );
+
+        String cartSql =
+            "SELECT IFNULL(SUM(quantity),0) AS totalQty " +
+            "FROM cart WHERE member_id=?";
+
+        cartPs = cartConn.prepareStatement(cartSql);
+        cartPs.setInt(1, memberIdForCart);
+
+        cartRs = cartPs.executeQuery();
+
+        if(cartRs.next()){
+            cartCount = cartRs.getInt("totalQty");
+        }
+
+    }catch(Exception e){
+        e.printStackTrace();
+    }finally{
+        if(cartRs!=null) cartRs.close();
+        if(cartPs!=null) cartPs.close();
+        if(cartConn!=null) cartConn.close();
+    }
+}
+%>
 <header class="site-header">
   <div class="header-top">
     <a href="index.jsp" class="brand-logo" style="text-decoration: none;">
@@ -615,7 +658,7 @@ footer {
     </a>
     <div class="header-icons">
       <a href="member.jsp" class="icon-btn" title="會員中心">會員</a>
-      <a href="shopping_cart.jsp" class="icon-btn cart-btn" title="購物車">購物車<span class="cart-badge">0</span></a>
+      <a href="shopping_cart.jsp" class="icon-btn cart-btn" title="購物車">購物車<span class="cart-badge"><%= cartCount %></span></a>
     </div>
   </div>
   <nav class="main-nav">
