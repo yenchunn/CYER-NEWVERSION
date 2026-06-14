@@ -599,7 +599,6 @@ if(session.getAttribute("m_id") != null){
       <div class="message">電話必須是 10 位數字。</div>
 
   <% } else { %>
-      <div class="message">❌ 註冊失敗，請重新再試。</div>
   <% } %>
   <form action="register_process.jsp" method="post">
     <label for="m_name">姓名</label>
