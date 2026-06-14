@@ -10,7 +10,7 @@
     <h1>會員管理</h1>
     <table>
       <thead>
-        <tr><th>會員編號</th><th>Email / 帳號</th><th>姓名</th><th>電話</th><th>地址</th><th>角色</th><th>註冊時間</th></tr>
+        <tr><th>會員編號</th><th>Email / 帳號</th><th>姓名</th><th>電話</th><th>地址</th><th>角色</th></tr>
       </thead>
       <tbody>
 <%
